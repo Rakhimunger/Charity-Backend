@@ -17,7 +17,7 @@ const instance = new Razorpay({
 exports.createOrder = async (req, res) => {
   try {
     const options = {
-      amount: req.body.amount, // convert to paisa
+      amount: req.body.amount,
       currency: "INR",
       receipt: "donation_rcpt_" + Date.now(),
     };
@@ -30,15 +30,14 @@ exports.createOrder = async (req, res) => {
     res.status(500).json({ success: false, error });
   }
 };
-
 // Payment Verification
 exports.verifyPayment = async (req, res) => {
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature, amount } =
     req.body;
 
   const sign = razorpay_order_id + "|" + razorpay_payment_id;
   const expectedSign = crypto
-    .createHmac("sha256", "wfGM2AxXvRPUnrdEsVA62WyP")
+    .createHmac("sha256", "wfGM2AxXvRPUnrdEsVA62WyP") // Tip: better to use process.env later
     .update(sign.toString())
     .digest("hex");
 
@@ -48,24 +47,27 @@ exports.verifyPayment = async (req, res) => {
         razorpay_order_id,
         razorpay_payment_id,
         razorpay_signature,
-        amount: 50000, // ya tum frontend se bhejna chaaho to
+        amount,
         currency: "INR",
         paymentStatus: "Success",
       });
 
-      res
-        .status(200)
-        .json({ success: true, message: "Payment verified and saved." });
+      res.status(200).json({
+        success: true,
+        message: "Payment verified and saved successfully!",
+      });
     } catch (err) {
-      console.error("DB Save Error:", err);
+      console.error("DB Save Error:", err.message);
       res.status(500).json({
         success: false,
         message: "Payment verified but DB save failed.",
+        error: err.message,
       });
     }
   } else {
-    res
-      .status(400)
-      .json({ success: false, message: "Payment verification failed" });
+    res.status(400).json({
+      success: false,
+      message: "Payment verification failed. Signature mismatch!",
+    });
   }
 };

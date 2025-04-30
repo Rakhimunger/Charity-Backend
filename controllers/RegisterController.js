@@ -2,7 +2,7 @@ const express = require("express");
 const RegisterSchema = require("../Models/RegisterLoginSchema");
 
 const RegisterRoutes = async (req, res) => {
-  const { FullName, Email, MobileNumber, Password, ConfirmPassword } = req.body;
+  const { FullName, Email, MobileNumber, Password } = req.body;
 
   try {
     const AllUsers = await RegisterSchema.find();
@@ -31,7 +31,7 @@ const RegisterRoutes = async (req, res) => {
         Email,
         MobileNumber,
         Password,
-        ConfirmPassword,
+
         usertype: "Admin",
       });
 
@@ -55,7 +55,7 @@ const RegisterRoutes = async (req, res) => {
         Email,
         MobileNumber,
         Password,
-        ConfirmPassword,
+
         usertype: "User",
       });
 

@@ -21,6 +21,7 @@ connectDB();
 app.post("/api/donations", donatingRoute); // Donation API route
 app.post("/api/razorpay/create-order", createOrder);
 app.post("/api/razorpay/verify-payment", verifyPayment);
+
 app.post("/api/register", RegisterRoutes);
 app.post("/api/login", LoginRoutes);
 
