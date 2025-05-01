@@ -31,7 +31,6 @@ exports.createOrder = async (req, res) => {
   }
 };
 
-// Payment Verification
 exports.verifyPayment = async (req, res) => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
     req.body;
