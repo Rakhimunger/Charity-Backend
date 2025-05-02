@@ -17,6 +17,12 @@ app.use(express.json()); // Parse JSON body
 // Connect to MongoDB
 connectDB();
 
+// ✅ Add this route to handle root GET request
+app.get("/", (req, res) => {
+  res.send("Backend is live! Maa Siddheshwari Charity API is running.");
+});
+
+
 // Routes
 app.post("/api/donations", donatingRoute); // Donation API route
 app.post("/api/razorpay/create-order", createOrder);

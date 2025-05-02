@@ -22,15 +22,15 @@ const donationSchema = new mongoose.Schema({
     required: true,
   },
 
-  category: {
-    type: String,
-    required: true,
-  },
-  status: {
-    type: String,
-    enum: ["Pending", "Verified", "Rejected"],
-    default: "Pending",
-  },
+  // category: {
+  //   type: String,
+  //   required: true,
+  // },
+  // status: {
+  //   type: String,
+  //   enum: ["Pending", "Verified", "Rejected"],
+  //   default: "Pending",
+  // },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
