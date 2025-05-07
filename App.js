@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const connectDB = require("./Config/db");
-const donatingRoute = require("../Admin-B/controllers/donationsController");
+const donatingRoute = require("./controllers/donationsController");
 const { createOrder, verifyPayment } = require("./controllers/RazorController");
 const RegisterRoutes = require("./controllers/RegisterController");
 const LoginRoutes = require("./controllers/LoginController");
@@ -25,5 +25,6 @@ app.get("/api/razorpay/donation-history", getalldonationhistory);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
   console.log(`Server running on port ${PORT}`);
 });
