@@ -1,17 +1,17 @@
-const donation = require("../Models/donationsSchema");
+const donation = require("../Models/donation");
 
 const registerDonation = async (req, res) => {
-  const { fullName, contactNumber, address, reason, amount } = req.body;
+  const {
+    FullName,
+    ContactNumber,
+    Email,
+    address,
+    category,
+    Language,
+    amount,
+  } = req.body;
 
-  const mobileRegex = /^[0-9]{10}$/;
-
-  if (!mobileRegex.test(contactNumber)) {
-    return res.status(400).json({
-      error: "Invalid mobile number. It must be exactly 10 digits",
-    });
-  }
-
-  if (!amount || amount <= 0) {
+  if (!amount || amount <= 250) {
     return res.status(400).json({
       error: "Amount should be more than 250.",
     });
@@ -19,10 +19,12 @@ const registerDonation = async (req, res) => {
 
   try {
     await donation.create({
-      fullName,
-      contactNumber,
+      FullName,
+      ContactNumber,
+      Email,
       address,
-      reason,
+      category,
+      Language,
       amount,
     });
 

@@ -2,6 +2,7 @@ const Razorpay = require("razorpay");
 const crypto = require("crypto");
 require("dotenv").config();
 const PaymentModel = require("../Models/Payment");
+const userdetails = require("../Models/donation");
 
 const instance = new Razorpay({
   key_id: "rzp_test_4dGSN3soiQbdOv",
@@ -37,13 +38,17 @@ exports.verifyPayment = async (req, res) => {
 
   const sign = razorpay_order_id + "|" + razorpay_payment_id;
   const expectedSign = crypto
-    .createHmac("sha256", "wfGM2AxXvRPUnrdEsVA62WyP") // Tip: better to use process.env later
-    .update(sign.toString())
+    .createHmac(
+      "sha256",
+      process.env.RAZORPAY_SECRET || "wfGM2AxXvRPUnrdEsVA62WyP"
+    )
+    .update(sign)
     .digest("hex");
 
   if (expectedSign === razorpay_signature) {
     try {
-      await PaymentModel.create({
+      // 1. Save payment details
+      const payment = await PaymentModel.create({
         razorpay_order_id,
         razorpay_payment_id,
         razorpay_signature,
@@ -52,9 +57,17 @@ exports.verifyPayment = async (req, res) => {
         paymentStatus: "Success",
       });
 
+      // 2. Link latest userdetails entry to this payment
+      const updated = await userdetails.findOneAndUpdate(
+        { donation: { $exists: false } }, // safer condition
+        { $set: { donation: payment._id } },
+        { sort: { createdAt: -1 }, new: true }
+      );
+
       res.status(200).json({
         success: true,
         message: "Payment verified and saved successfully!",
+        updated,
       });
     } catch (err) {
       console.error("DB Save Error:", err.message);
