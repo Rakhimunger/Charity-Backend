@@ -36,14 +36,26 @@ exports.verifyPayment = async (req, res) => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature, amount } =
     req.body;
 
-  const sign = razorpay_order_id + "|" + razorpay_payment_id;
-  const expectedSign = crypto
-    .createHmac(
-      "sha256",
-      process.env.RAZORPAY_SECRET || "wfGM2AxXvRPUnrdEsVA62WyP"
-    )
-    .update(sign)
-    .digest("hex");
+  let paymentStatus = "pendind";
+
+  if (!razorpay_payment_id) {
+    paymentStatus = "Failed";
+  } else {
+    const sign = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSign = crypto
+      .createHmac(
+        "sha256",
+        process.env.RAZORPAY_SECRET || "wfGM2AxXvRPUnrdEsVA62WyP"
+      )
+      .update(sign)
+      .digest("hex");
+
+    if (expectedSign === razorpay_signature) {
+      paymentStatus = "Success";
+    } else {
+      paymentStatus = "Failed";
+    }
+  }
 
   if (expectedSign === razorpay_signature) {
     try {
