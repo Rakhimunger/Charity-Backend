@@ -31,7 +31,6 @@ const RegisterRoutes = async (req, res) => {
         Email,
         MobileNumber,
         Password,
-
         usertype: "Admin",
       });
 
@@ -55,7 +54,6 @@ const RegisterRoutes = async (req, res) => {
         Email,
         MobileNumber,
         Password,
-
         usertype: "User",
       });
 

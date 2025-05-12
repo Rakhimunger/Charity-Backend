@@ -2,7 +2,10 @@ const Razorpay = require("razorpay");
 const crypto = require("crypto");
 require("dotenv").config();
 const PaymentModel = require("../Models/Payment");
-const userdetails = require("../Models/donation");
+const donationModel = require("../Models/donation");
+const mongoose = require("mongoose");
+
+const invoice = require("../Certificates/generateCertificate");
 
 const instance = new Razorpay({
   key_id: "rzp_test_4dGSN3soiQbdOv",
@@ -31,68 +34,99 @@ exports.createOrder = async (req, res) => {
     res.status(500).json({ success: false, error });
   }
 };
-// Payment Verification
+
 exports.verifyPayment = async (req, res) => {
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature, amount } =
-    req.body;
+  const {
+    razorpay_order_id,
+    razorpay_payment_id,
+    razorpay_signature,
+    amount,
+    FullName,
+    ContactNumber,
+    Email,
+    address,
+    category,
+    Language,
+  } = req.body;
 
-  let paymentStatus = "pendind";
+  const sign = razorpay_order_id + "|" + razorpay_payment_id;
+  const expectedSign = crypto
+    .createHmac(
+      "sha256",
+      process.env.RAZORPAY_SECRET || "wfGM2AxXvRPUnrdEsVA62WyP"
+    )
+    .update(sign)
+    .digest("hex");
 
-  if (!razorpay_payment_id) {
-    paymentStatus = "Failed";
-  } else {
-    const sign = razorpay_order_id + "|" + razorpay_payment_id;
-    const expectedSign = crypto
-      .createHmac(
-        "sha256",
-        process.env.RAZORPAY_SECRET || "wfGM2AxXvRPUnrdEsVA62WyP"
-      )
-      .update(sign)
-      .digest("hex");
-
-    if (expectedSign === razorpay_signature) {
-      paymentStatus = "Success";
-    } else {
-      paymentStatus = "Failed";
-    }
-  }
-
-  if (expectedSign === razorpay_signature) {
-    try {
-      // 1. Save payment details
-      const payment = await PaymentModel.create({
-        razorpay_order_id,
-        razorpay_payment_id,
-        razorpay_signature,
-        amount,
-        currency: "INR",
-        paymentStatus: "Success",
-      });
-
-      // 2. Link latest userdetails entry to this payment
-      const updated = await userdetails.findOneAndUpdate(
-        { donation: { $exists: false } }, // safer condition
-        { $set: { donation: payment._id } },
-        { sort: { createdAt: -1 }, new: true }
-      );
-
-      res.status(200).json({
-        success: true,
-        message: "Payment verified and saved successfully!",
-        updated,
-      });
-    } catch (err) {
-      console.error("DB Save Error:", err.message);
-      res.status(500).json({
-        success: false,
-        message: "Payment verified but DB save failed.",
-        error: err.message,
-      });
-    }
-  } else {
-    res.status(400).json({
+  if (expectedSign !== razorpay_signature) {
+    return res.status(400).json({
       success: false,
       message: "Payment verification failed. Signature mismatch!",
+    });
+  }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    // 1. Save payment inside transaction
+    const payment = await PaymentModel.create(
+      [
+        {
+          razorpay_order_id,
+          razorpay_payment_id,
+          razorpay_signature,
+          amount,
+          currency: "INR",
+          paymentStatus: "Success",
+        },
+      ],
+      { session }
+    );
+
+    // 2. Save donation inside transaction
+    const donation = await donationModel.create(
+      [
+        {
+          FullName,
+          ContactNumber,
+          Email,
+          address,
+          category,
+          Language,
+          amount,
+          donation: payment[0]._id, // reference to payment
+        },
+      ],
+      { session }
+    );
+
+    // 3. Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    // 4. Generate certificate
+    invoice(
+      donation[0].FullName,
+      donation[0].amount,
+      donation[0].createdAt,
+      donation[0].address
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Payment verified and donation saved successfully!",
+      donation: donation[0],
+    });
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Transaction error:", err.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong during transaction.",
+      error: err.message,
     });
   }
 };
