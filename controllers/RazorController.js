@@ -57,9 +57,9 @@ exports.verifyPayment = async (req, res) => {
         paymentStatus: "Success",
       });
 
-      // 2. Link latest userdetails entry to this payment
+      
       const updated = await userdetails.findOneAndUpdate(
-        { donation: { $exists: false } }, // safer condition
+        { donation: { $exists: false } }, 
         { $set: { donation: payment._id } },
         { sort: { createdAt: -1 }, new: true }
       );
