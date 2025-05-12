@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const connectDB = require("./Config/db");
-const donatingRoute = require("./controllers/donationsController");
+
 const { createOrder, verifyPayment } = require("./controllers/RazorController");
 const RegisterRoutes = require("./controllers/RegisterController");
 const LoginRoutes = require("./controllers/LoginController");
@@ -16,7 +16,7 @@ app.use(express.json());
 
 connectDB();
 
-app.post("/api/donations", donatingRoute);
+app.post("/api/donations", verifyPayment);
 app.post("/api/razorpay/create-order", createOrder);
 app.post("/api/razorpay/verify-payment", verifyPayment);
 app.post("/api/register", RegisterRoutes);
@@ -25,6 +25,5 @@ app.get("/api/razorpay/donation-history", getalldonationhistory);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
   console.log(`Server running on port ${PORT}`);
 });

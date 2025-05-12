@@ -9,8 +9,6 @@ const donationSchema = new mongoose.Schema({
   category: { type: String, required: true },
   amount: { type: Number, required: true },
   Language: { type: String, required: true },
-  // paymentStatus: { type: String, required: true },
-
   createdAt: { type: Date, default: Date.now },
 
   donation: {
