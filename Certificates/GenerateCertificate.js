@@ -1,20 +1,39 @@
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
+const path = require("path");
+
 function generateCertificate({
   name,
   amount,
   date = new Date().toLocaleDateString(),
 }) {
-  const doc = new PDFDocument({ size: "A4, margin: 50" });
+  
+  const dir = path.join(__dirname, "../Certificates");
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir);
+  }
 
-  // Ensure output directory exists
+  const fileName = path.join(
+    dir,
+    `${name.replace(/ /g, "_")}_Certificate.pdf`
+  );
+
+  const doc = new PDFDocument({
+    size: "A4",
+    margin: 50,
+  });
+
+  const stream = fs.createWriteStream(fileName);
+  doc.pipe(stream);
+
 
   doc
     .fontSize(24)
-    .fileColor("003366")
+    .fillColor("#003366")
     .text("CERTIFICATE OF APPRECIATION", { align: "center" })
     .moveDown();
 
+  
   doc
     .fontSize(14)
     .fillColor("black")
@@ -25,7 +44,19 @@ function generateCertificate({
     .fontSize(20)
     .fillColor("#003366")
     .text(name.toUpperCase(), { align: "center", underline: true })
-    .moveDown(0.5);
+    .moveDown(1);
 
-  doc.fontSize();
+  
+  doc
+    .fontSize(14)
+    .fillColor("black")
+    .text(`For donating an amount of ₹${amount}`, { align: "center" })
+    .moveDown(1);
+  doc.fontSize(12).text(`Date: ${date}`, { align: "right" });
+
+  doc.end();
+
+  console.log("✅ Certificate generated:", fileName);
 }
+
+module.exports = generateCertificate;

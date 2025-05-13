@@ -9,6 +9,7 @@ const LoginRoutes = require("./controllers/LoginController");
 const {
   getalldonationhistory,
 } = require("./controllers/donationHistoryController.js");
+const eventRoutes = require("./routes/eventRoutes");
 
 const app = express();
 app.use(cors());
@@ -22,7 +23,7 @@ app.post("/api/razorpay/verify-payment", verifyPayment);
 app.post("/api/register", RegisterRoutes);
 app.post("/api/login", LoginRoutes);
 app.get("/api/razorpay/donation-history", getalldonationhistory);
-
+app.use("/api/events", eventRoutes);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
