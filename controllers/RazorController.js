@@ -68,8 +68,10 @@ exports.verifyPayment = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
+  let isCommitted = false;
+
   try {
-    // 1. Save payment inside transaction
+    
     const payment = await PaymentModel.create(
       [
         {
@@ -84,7 +86,9 @@ exports.verifyPayment = async (req, res) => {
       { session }
     );
 
-    // 2. Save donation inside transaction
+   
+    
+
     const donation = await donationModel.create(
       [
         {
@@ -95,17 +99,17 @@ exports.verifyPayment = async (req, res) => {
           category,
           Language,
           amount,
-          donation: payment[0]._id, // reference to payment
+          donation: payment[0]._id,
         },
       ],
       { session }
     );
 
-    // 3. Commit transaction
+    
     await session.commitTransaction();
-    session.endSession();
-
-    // 4. Generate certificate
+    // session.endSession();
+isCommitted = true;
+    
     invoice(
       donation[0].FullName,
       donation[0].amount,
@@ -118,15 +122,22 @@ exports.verifyPayment = async (req, res) => {
       message: "Payment verified and donation saved successfully!",
       donation: donation[0],
     });
-  } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
-    console.error("Transaction error:", err.message);
+   } catch (err) {
+    if (!isCommitted) {
+      try {
+        await session.abortTransaction();
+      } catch (abortErr) {
+        console.error("Abort failed:", abortErr.message);
+      }
+    }
 
+    console.error("Transaction error:", err.message);
     res.status(500).json({
       success: false,
       message: "Something went wrong during transaction.",
       error: err.message,
     });
+  } finally {
+    session.endSession();
   }
 };

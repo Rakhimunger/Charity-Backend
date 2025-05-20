@@ -8,7 +8,7 @@ const RegisterRoutes = async (req, res) => {
     const AllUsers = await RegisterSchema.find();
     let NewUser = null;
 
-    // Common mobile validation
+    
     const mobileRegex = /^[0-9]{10}$/;
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!MobileNumber || MobileNumber.length !== 10) {
@@ -25,7 +25,7 @@ const RegisterRoutes = async (req, res) => {
     }
 
     if (AllUsers.length === 0) {
-      // Admin creation
+    
       NewUser = await RegisterSchema.create({
         FullName,
         Email,
@@ -39,7 +39,7 @@ const RegisterRoutes = async (req, res) => {
         NewUser,
       });
     } else {
-      // Check for duplicate user
+      
       const check_phone_email = await RegisterSchema.findOne({
         $or: [{ Email }, { MobileNumber }],
       });
@@ -48,7 +48,7 @@ const RegisterRoutes = async (req, res) => {
         return res.status(400).json({ message: "User already exists" });
       }
 
-      // Create regular user
+          
       const newUser = await RegisterSchema.create({
         FullName,
         Email,

@@ -2,10 +2,15 @@ const express = require("express");
 const router = express.Router();
 
 const { createEvent, getAllEvents } = require("../controllers/EventController");
+const multer = require("multer");
+const { storage } = require("../utils/Cloudinary"); // adjust path
 
+const upload = multer({ storage });
 
-router.post("/", createEvent);
+// Apply multer middleware here to handle the 'image' upload before createEvent controller
+router.post("/", upload.single("image"), createEvent);
 
 router.get("/", getAllEvents);
 
 module.exports = router;
+ 

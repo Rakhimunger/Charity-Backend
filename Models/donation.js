@@ -5,7 +5,7 @@ const donationSchema = new mongoose.Schema({
   FullName: { type: String, required: true },
   ContactNumber: { type: String, required: true },
   Email: { type: String, required: true },
-  address: { type: String, require: true },
+  address: { type: String, required: true },
   category: { type: String, required: true },
   amount: { type: Number, required: true },
   Language: { type: String, required: true },
