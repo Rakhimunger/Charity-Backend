@@ -1,5 +1,5 @@
  const donation = require("../Models/donation");
-
+const generateCertificate = require("../Certificates/generateCertificate");
  const registerDonation = async (req, res) => {
   console.log("Received donation data:", req.body);
    const  data  = req.body;
@@ -20,6 +20,11 @@
        Language: data.Language,
        amount: data.amount,
      });
+
+     generateCertificate({
+      name: data.FullName,
+      amount: data.amount,
+     })
 
      res.status(201).json({ message: "Donation submitted successfully." });
    } catch (error) {

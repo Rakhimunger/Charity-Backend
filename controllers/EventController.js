@@ -3,10 +3,16 @@ const Event = require("../Models/Event");
 
 const createEvent = async (req, res) => {
   try {
-    const newEvent = new Event(req.body);
+    const newEvent = new Event({
+      ...req.body,
+      image: req.file?.path || "", 
+    });
+
     await newEvent.save();
+
     res.status(201).json(newEvent);
   } catch (error) {
+    console.error("Error creating event:", error);
     res.status(500).json({ error: error.message });
   }
 };
